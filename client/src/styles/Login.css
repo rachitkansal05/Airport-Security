@@ -1,0 +1,113 @@
+/* Login page styles */
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 70px);
+  background: linear-gradient(to right, #222831, #333a45);
+}
+
+.login-card {
+  background-color: var(--dark-surface);
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.login-title {
+  text-align: center;
+  color: var(--golden-primary);
+  margin-bottom: 2rem;
+  font-weight: 600;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  display: block;
+  color: var(--text-primary);
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  background-color: rgba(0, 0, 0, 0.2);
+  color: var(--text-primary);
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.form-input:focus {
+  border-color: var(--golden-primary);
+  outline: none;
+}
+
+.error-text {
+  color: var(--error-color);
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+.form-button {
+  background-color: var(--golden-primary);
+  color: var(--dark-bg);
+  border: none;
+  padding: 0.75rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 1rem;
+}
+
+.form-button:hover {
+  background-color: var(--golden-secondary);
+}
+
+.form-button:disabled {
+  background-color: #555;
+  cursor: not-allowed;
+}
+
+.register-link {
+  text-align: center;
+  margin-top: 2rem;
+  color: var(--text-secondary);
+}
+
+.register-link a {
+  color: var(--golden-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.register-link a:hover {
+  text-decoration: underline;
+  color: var(--golden-secondary);
+}
+
+.alert {
+  background-color: rgba(231, 76, 60, 0.3);
+  border-left: 4px solid var(--error-color);
+  color: var(--text-primary);
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
