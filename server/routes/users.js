@@ -20,7 +20,7 @@ router.get('/profile/:id', async (req, res) => {
 });
 
 router.put('/profile', auth, async (req, res) => {
-  const { name, bio, profilePicture } = req.body;
+  const { name, contactInfo, residentialAddress, gender, age, profilePicture } = req.body;
 
   try {
     // Find the user
@@ -32,7 +32,10 @@ router.put('/profile', auth, async (req, res) => {
     
     // Update fields
     if (name) user.name = name;
-    if (bio !== undefined) user.bio = bio;
+    if (contactInfo !== undefined) user.contactInfo = contactInfo;
+    if (residentialAddress !== undefined) user.residentialAddress = residentialAddress;
+    if (gender !== undefined) user.gender = gender;
+    if (age !== undefined) user.age = age;
     if (profilePicture !== undefined) user.profilePicture = profilePicture;
     
     // Save the updated user

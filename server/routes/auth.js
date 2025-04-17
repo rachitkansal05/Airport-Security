@@ -7,34 +7,39 @@ const User = require('../models/User');
 
 
 router.post('/register', async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, contactInfo, residentialAddress, gender, age } = req.body;
 
   try {
-    
+    // Check if user already exists
     let user = await User.findOne({ email });
     if (user) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    
+    // Create new user
     user = new User({
       name,
       email,
-      password
+      password,
+      contactInfo,
+      residentialAddress,
+      gender,
+      age
     });
 
-
+    // Hash password
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
 
-
+    // Save user to database
     await user.save();
 
-
+    // Create JWT payload
     const payload = {
       userId: user.id
     };
 
+    // Sign JWT token
     jwt.sign(
       payload,
       process.env.JWT_SECRET || 'defaultsecret',
@@ -48,7 +53,10 @@ router.post('/register', async (req, res) => {
             name: user.name,
             email: user.email,
             profilePicture: user.profilePicture,
-            bio: user.bio
+            contactInfo: user.contactInfo,
+            residentialAddress: user.residentialAddress,
+            gender: user.gender,
+            age: user.age
           }
         });
       }
@@ -93,7 +101,10 @@ router.post('/login', async (req, res) => {
             name: user.name,
             email: user.email,
             profilePicture: user.profilePicture,
-            bio: user.bio
+            contactInfo: user.contactInfo,
+            residentialAddress: user.residentialAddress,
+            gender: user.gender,
+            age: user.age
           }
         });
       }

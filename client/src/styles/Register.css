@@ -11,12 +11,24 @@
 
 .register-card {
   background-color: var(--dark-surface);
-  border-radius: 10px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
   width: 100%;
-  max-width: 400px;
-  padding: 2rem;
+  max-width: 550px;
+  padding: 2.5rem;
   border: 1px solid rgba(212, 175, 55, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.register-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(to right, var(--golden-primary), var(--golden-secondary));
 }
 
 .register-title {
@@ -24,6 +36,7 @@
   color: var(--golden-primary);
   margin-bottom: 2rem;
   font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
 .register-form {

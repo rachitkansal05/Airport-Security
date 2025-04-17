@@ -4,10 +4,22 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem;
+  padding: 1rem 2.5rem;
   background-color: var(--dark-surface);
   color: var(--text-primary);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 100;
+}
+
+.navbar::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(to right, var(--golden-primary), transparent);
 }
 
 .navbar-logo {
@@ -15,6 +27,9 @@
   font-weight: bold;
   color: var(--golden-primary);
   text-decoration: none;
+  letter-spacing: 1px;
+  position: relative;
+  padding: 0.25rem 0;
 }
 
 .navbar-logo:hover {
@@ -23,7 +38,7 @@
 
 .navbar-items {
   display: flex;
-  gap: 1.5rem;
+  gap: 1.8rem;
   align-items: center;
 }
 
@@ -32,24 +47,47 @@
   text-decoration: none;
   font-weight: 500;
   padding: 0.5rem;
-  transition: all 0.3s ease;
+  transition: all var(--transition-speed) ease;
+  position: relative;
+}
+
+.navbar-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background-color: var(--golden-primary);
+  transition: all var(--transition-speed) ease;
+  transform: translateX(-50%);
 }
 
 .navbar-link:hover {
   color: var(--golden-primary);
 }
 
+.navbar-link:hover::after {
+  width: 70%;
+}
+
 .navbar-button {
-  background-color: var(--golden-primary);
+  background: linear-gradient(to right, var(--golden-primary), var(--golden-secondary));
   color: var(--dark-bg);
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--border-radius);
   cursor: pointer;
-  font-weight: 500;
-  transition: all 0.3s ease;
+  font-weight: 600;
+  transition: all var(--transition-speed) ease;
+  letter-spacing: 0.5px;
 }
 
 .navbar-button:hover {
-  background-color: var(--golden-secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(212, 175, 55, 0.2);
+}
+
+.navbar-button:active {
+  transform: translateY(0);
 }

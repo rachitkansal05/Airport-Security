@@ -9,8 +9,16 @@ const ProfileSchema = Yup.object().shape({
   name: Yup.string()
     .required('Name is required')
     .min(2, 'Name must be at least 2 characters'),
-  bio: Yup.string()
-    .max(300, 'Bio must be at most 300 characters'),
+  contactInfo: Yup.string()
+    .required('Contact information is required'),
+  residentialAddress: Yup.string()
+    .required('Residential address is required'),
+  gender: Yup.string()
+    .required('Gender is required'),
+  age: Yup.number()
+    .required('Age is required')
+    .positive('Age must be a positive number')
+    .integer('Age must be an integer'),
   profilePicture: Yup.string()
     .url('Must be a valid URL')
 });
@@ -72,7 +80,10 @@ const Profile = () => {
         <Formik
           initialValues={{
             name: currentUser?.name || '',
-            bio: currentUser?.bio || '',
+            contactInfo: currentUser?.contactInfo || '',
+            residentialAddress: currentUser?.residentialAddress || '',
+            gender: currentUser?.gender || '',
+            age: currentUser?.age || '',
             profilePicture: currentUser?.profilePicture || ''
           }}
           validationSchema={ProfileSchema}
@@ -117,18 +128,67 @@ const Profile = () => {
                 <ErrorMessage name="profilePicture" component="div" className="error-text" />
               </div>
               
-              <div className="form-group full-width">
-                <label htmlFor="bio" className="form-label">Bio</label>
-                <textarea
-                  name="bio"
-                  id="bio"
-                  placeholder="Tell us about yourself"
+              <div className="form-group">
+                <label htmlFor="contactInfo" className="form-label">Contact Information</label>
+                <input 
+                  type="text" 
+                  name="contactInfo" 
+                  id="contactInfo" 
+                  placeholder="Enter your phone number" 
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  value={values.bio}
-                  className="form-textarea"
-                ></textarea>
-                <ErrorMessage name="bio" component="div" className="error-text" />
+                  value={values.contactInfo}
+                  className="form-input"
+                />
+                <ErrorMessage name="contactInfo" component="div" className="error-text" />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="residentialAddress" className="form-label">Residential Address</label>
+                <input 
+                  type="text" 
+                  name="residentialAddress" 
+                  id="residentialAddress" 
+                  placeholder="Enter your residential address" 
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  value={values.residentialAddress}
+                  className="form-input"
+                />
+                <ErrorMessage name="residentialAddress" component="div" className="error-text" />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="gender" className="form-label">Gender</label>
+                <select
+                  name="gender"
+                  id="gender"
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  value={values.gender}
+                  className="form-input"
+                >
+                  <option value="">Select your gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+                <ErrorMessage name="gender" component="div" className="error-text" />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="age" className="form-label">Age</label>
+                <input 
+                  type="number" 
+                  name="age" 
+                  id="age" 
+                  placeholder="Enter your age" 
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  value={values.age}
+                  className="form-input"
+                />
+                <ErrorMessage name="age" component="div" className="error-text" />
               </div>
               
               <div className="button-container">

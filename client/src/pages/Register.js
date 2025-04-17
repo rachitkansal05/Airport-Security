@@ -13,6 +13,16 @@ const RegisterSchema = Yup.object().shape({
   email: Yup.string()
     .email('Invalid email address')
     .required('Email is required'),
+  contactInfo: Yup.string()
+    .required('Contact information is required'),
+  residentialAddress: Yup.string()
+    .required('Residential address is required'),
+  gender: Yup.string()
+    .required('Gender is required'),
+  age: Yup.number()
+    .required('Age is required')
+    .positive('Age must be a positive number')
+    .integer('Age must be an integer'),
   password: Yup.string()
     .required('Password is required')
     .min(6, 'Password must be at least 6 characters'),
@@ -34,7 +44,15 @@ const Register = () => {
   }, [currentUser, navigate]);
 
   const handleSubmit = async (values, { setSubmitting }) => {
-    const success = await register(values.name, values.email, values.password);
+    const success = await register(
+      values.name, 
+      values.email, 
+      values.password,
+      values.contactInfo,
+      values.residentialAddress,
+      values.gender,
+      values.age
+    );
     if (!success) {
       setRegisterError(error || 'Registration failed. Please try again.');
     }
@@ -47,7 +65,16 @@ const Register = () => {
         <h2 className="register-title">Create an Account</h2>
         
         <Formik
-          initialValues={{ name: '', email: '', password: '', confirmPassword: '' }}
+          initialValues={{ 
+            name: '', 
+            email: '', 
+            contactInfo: '', 
+            residentialAddress: '', 
+            gender: '', 
+            age: '', 
+            password: '', 
+            confirmPassword: '' 
+          }}
           validationSchema={RegisterSchema}
           onSubmit={handleSubmit}
         >
@@ -83,6 +110,69 @@ const Register = () => {
                   className="form-input"
                 />
                 <ErrorMessage name="email" component="div" className="error-text" />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="contactInfo" className="form-label">Contact Information</label>
+                <input 
+                  type="text" 
+                  name="contactInfo" 
+                  id="contactInfo" 
+                  placeholder="Enter your phone number" 
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  value={values.contactInfo}
+                  className="form-input"
+                />
+                <ErrorMessage name="contactInfo" component="div" className="error-text" />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="residentialAddress" className="form-label">Residential Address</label>
+                <input 
+                  type="text" 
+                  name="residentialAddress" 
+                  id="residentialAddress" 
+                  placeholder="Enter your residential address" 
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  value={values.residentialAddress}
+                  className="form-input"
+                />
+                <ErrorMessage name="residentialAddress" component="div" className="error-text" />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="gender" className="form-label">Gender</label>
+                <select
+                  name="gender"
+                  id="gender"
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  value={values.gender}
+                  className="form-input"
+                >
+                  <option value="">Select your gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+                <ErrorMessage name="gender" component="div" className="error-text" />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="age" className="form-label">Age</label>
+                <input 
+                  type="number" 
+                  name="age" 
+                  id="age" 
+                  placeholder="Enter your age" 
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  value={values.age}
+                  className="form-input"
+                />
+                <ErrorMessage name="age" component="div" className="error-text" />
               </div>
               
               <div className="form-group">
