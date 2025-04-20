@@ -9,12 +9,25 @@ body {
   background-color: var(--dark-bg);
   color: var(--text-primary);
   line-height: 1.6;
+  min-height: 100vh;
+  overflow-y: auto; /* Ensure scrolling is enabled */
 }
 
 .App {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative; /* Create stacking context */
+  z-index: 1; /* Position above the background */
+}
+
+/* Vanta background styles */
+.vanta-content {
+  min-height: 100vh;
+  width: 100%;
+  overflow-y: auto; /* Enable scrolling for content */
+  position: relative; /* Create stacking context */
+  z-index: 1; /* Position above the background */
 }
 
 .loading-container {

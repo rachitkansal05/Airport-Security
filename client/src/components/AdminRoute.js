@@ -3,7 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import '../styles/Auth.css';
 
-const PrivateRoute = ({ children }) => {
+const AdminRoute = ({ children }) => {
   const { currentUser, loading } = useContext(AuthContext);
   const location = useLocation();
 
@@ -16,9 +16,15 @@ const PrivateRoute = ({ children }) => {
     );
   }
 
-  return currentUser 
-    ? children 
-    : <Navigate to="/login" state={{ from: location }} replace />;
+  if (!currentUser) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+  
+  if (currentUser.role !== 'admin') {
+    return <Navigate to="/profile" replace />;
+  }
+
+  return children;
 };
 
-export default PrivateRoute;
+export default AdminRoute;

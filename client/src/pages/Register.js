@@ -1,11 +1,10 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import { Formik, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
+import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import '../styles/Register.css';
 
-// Validation schema
 const RegisterSchema = Yup.object().shape({
   name: Yup.string()
     .required('Name is required')
@@ -28,41 +27,56 @@ const RegisterSchema = Yup.object().shape({
     .min(6, 'Password must be at least 6 characters'),
   confirmPassword: Yup.string()
     .oneOf([Yup.ref('password'), null], 'Passwords must match')
-    .required('Confirm Password is required')
+    .required('Confirm password is required')
 });
 
 const Register = () => {
-  const { register, error, currentUser } = useContext(AuthContext);
+  const { register, error, clearError, requestLoading, currentUser } = useContext(AuthContext);
   const navigate = useNavigate();
-  const [registerError, setRegisterError] = useState(null);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
   useEffect(() => {
-    // If user is already logged in, redirect to profile
+    clearError();
+    
     if (currentUser) {
-      navigate('/profile');
+      if (currentUser.role === 'admin') {
+        navigate('/dashboard');
+      } else {
+        navigate('/profile');
+      }
     }
-  }, [currentUser, navigate]);
+  }, [currentUser, navigate, clearError]);
 
-  const handleSubmit = async (values, { setSubmitting }) => {
-    const success = await register(
-      values.name, 
-      values.email, 
-      values.password,
-      values.contactInfo,
-      values.residentialAddress,
-      values.gender,
-      values.age
-    );
-    if (!success) {
-      setRegisterError(error || 'Registration failed. Please try again.');
+  const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+    const result = await register({
+      name: values.name, 
+      email: values.email, 
+      password: values.password,
+      contactInfo: values.contactInfo,
+      residentialAddress: values.residentialAddress,
+      gender: values.gender,
+      age: values.age
+    });
+    
+    if (result.success) {
+      setRegistrationSuccess(true);
+      resetForm();
+    } else {
+      setRegistrationSuccess(false);
     }
+    
     setSubmitting(false);
+    
+    setTimeout(() => {
+      setRegistrationSuccess(false);
+    }, 5000);
   };
 
   return (
     <div className="register-container">
       <div className="register-card">
-        <h2 className="register-title">Create an Account</h2>
+        <h2 className="register-title">Add New Employee</h2>
+        <p className="register-subtitle">Create a new employee account for your organization</p>
         
         <Formik
           initialValues={{ 
@@ -80,141 +94,157 @@ const Register = () => {
         >
           {({ isSubmitting, handleChange, handleBlur, values }) => (
             <Form className="register-form">
-              {registerError && <div className="alert">{registerError}</div>}
+              {registrationSuccess && (
+                <div className="alert success">
+                  Employee {values.name} has been successfully registered.
+                </div>
+              )}
               
-              <div className="form-group">
-                <label htmlFor="name" className="form-label">Name</label>
-                <input 
-                  type="text" 
-                  name="name" 
-                  id="name" 
-                  placeholder="Enter your name" 
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  value={values.name}
-                  className="form-input"
-                />
-                <ErrorMessage name="name" component="div" className="error-text" />
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="name" className="form-label">Name *</label>
+                  <input 
+                    type="text" 
+                    name="name" 
+                    id="name" 
+                    placeholder="Employee name" 
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    value={values.name}
+                    className="form-input"
+                  />
+                  <ErrorMessage name="name" component="div" className="error-text" />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="email" className="form-label">Email *</label>
+                  <input 
+                    type="email" 
+                    name="email" 
+                    id="email" 
+                    placeholder="Employee email" 
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    value={values.email}
+                    className="form-input"
+                  />
+                  <ErrorMessage name="email" component="div" className="error-text" />
+                </div>
               </div>
               
-              <div className="form-group">
-                <label htmlFor="email" className="form-label">Email</label>
-                <input 
-                  type="email" 
-                  name="email" 
-                  id="email" 
-                  placeholder="Enter your email" 
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  value={values.email}
-                  className="form-input"
-                />
-                <ErrorMessage name="email" component="div" className="error-text" />
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="password" className="form-label">Password *</label>
+                  <input 
+                    type="password" 
+                    name="password" 
+                    id="password" 
+                    placeholder="Create password" 
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    value={values.password}
+                    className="form-input"
+                  />
+                  <ErrorMessage name="password" component="div" className="error-text" />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="confirmPassword" className="form-label">Confirm Password *</label>
+                  <input 
+                    type="password" 
+                    name="confirmPassword" 
+                    id="confirmPassword" 
+                    placeholder="Confirm password" 
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    value={values.confirmPassword}
+                    className="form-input"
+                  />
+                  <ErrorMessage name="confirmPassword" component="div" className="error-text" />
+                </div>
               </div>
               
-              <div className="form-group">
-                <label htmlFor="contactInfo" className="form-label">Contact Information</label>
-                <input 
-                  type="text" 
-                  name="contactInfo" 
-                  id="contactInfo" 
-                  placeholder="Enter your phone number" 
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  value={values.contactInfo}
-                  className="form-input"
-                />
-                <ErrorMessage name="contactInfo" component="div" className="error-text" />
+              <div className="section-title">Additional Information (Optional)</div>
+              
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="contactInfo" className="form-label">Contact Information</label>
+                  <input 
+                    type="text" 
+                    name="contactInfo" 
+                    id="contactInfo" 
+                    placeholder="Phone number" 
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    value={values.contactInfo}
+                    className="form-input"
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="residentialAddress" className="form-label">Residential Address</label>
+                  <input 
+                    type="text" 
+                    name="residentialAddress" 
+                    id="residentialAddress" 
+                    placeholder="Home address" 
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    value={values.residentialAddress}
+                    className="form-input"
+                  />
+                </div>
               </div>
               
-              <div className="form-group">
-                <label htmlFor="residentialAddress" className="form-label">Residential Address</label>
-                <input 
-                  type="text" 
-                  name="residentialAddress" 
-                  id="residentialAddress" 
-                  placeholder="Enter your residential address" 
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  value={values.residentialAddress}
-                  className="form-input"
-                />
-                <ErrorMessage name="residentialAddress" component="div" className="error-text" />
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="gender" className="form-label">Gender</label>
+                  <select
+                    name="gender"
+                    id="gender"
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    value={values.gender}
+                    className="form-input"
+                  >
+                    <option value="">Select gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="age" className="form-label">Age</label>
+                  <input 
+                    type="number" 
+                    name="age" 
+                    id="age" 
+                    placeholder="Employee age" 
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    value={values.age}
+                    className="form-input"
+                  />
+                  {values.age && <ErrorMessage name="age" component="div" className="error-text" />}
+                </div>
               </div>
               
-              <div className="form-group">
-                <label htmlFor="gender" className="form-label">Gender</label>
-                <select
-                  name="gender"
-                  id="gender"
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  value={values.gender}
-                  className="form-input"
+              <div className="button-container">
+                <button type="submit" disabled={isSubmitting} className="form-button">
+                  {isSubmitting ? 'Adding Employee...' : 'Add Employee'}
+                </button>
+                <button 
+                  type="button" 
+                  className="form-button cancel-button"
+                  onClick={() => navigate('/dashboard')}
                 >
-                  <option value="">Select your gender</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
-                </select>
-                <ErrorMessage name="gender" component="div" className="error-text" />
+                  Back to Dashboard
+                </button>
               </div>
-              
-              <div className="form-group">
-                <label htmlFor="age" className="form-label">Age</label>
-                <input 
-                  type="number" 
-                  name="age" 
-                  id="age" 
-                  placeholder="Enter your age" 
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  value={values.age}
-                  className="form-input"
-                />
-                <ErrorMessage name="age" component="div" className="error-text" />
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="password" className="form-label">Password</label>
-                <input 
-                  type="password" 
-                  name="password" 
-                  id="password" 
-                  placeholder="Enter your password" 
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  value={values.password}
-                  className="form-input"
-                />
-                <ErrorMessage name="password" component="div" className="error-text" />
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="confirmPassword" className="form-label">Confirm Password</label>
-                <input 
-                  type="password" 
-                  name="confirmPassword" 
-                  id="confirmPassword" 
-                  placeholder="Confirm your password" 
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  value={values.confirmPassword}
-                  className="form-input"
-                />
-                <ErrorMessage name="confirmPassword" component="div" className="error-text" />
-              </div>
-              
-              <button type="submit" disabled={isSubmitting} className="form-button">
-                {isSubmitting ? 'Registering...' : 'Register'}
-              </button>
             </Form>
           )}
         </Formik>
-        
-        <p className="login-link">
-          Already have an account? <Link to="/login">Login here</Link>
-        </p>
       </div>
     </div>
   );

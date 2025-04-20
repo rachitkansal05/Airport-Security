@@ -5,27 +5,35 @@
   margin: 0;
   padding: 0;
   scrollbar-width: thin;
-  scrollbar-color: var(--golden-primary) var(--dark-surface);
+  scrollbar-color: var(--neon-blue) var(--dark-surface);
 }
 
 :root {
-  --dark-bg: #222831;
-  --dark-surface: #393E46;
-  --golden-primary: #D4AF37;
-  --golden-secondary: #FFD700;
-  --text-primary: #EEEEEE;
-  --text-secondary: #CCCCCC;
+  /* Core theme variables */
+  --dark-bg: #0c122e;
+  --dark-surface: #1a2347;
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
   --error-color: #e74c3c;
   --success-color: #2ecc71;
   --transition-speed: 0.3s;
   --border-radius: 8px;
   --box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  
+  /* Cybersecurity theme variables */
+  --neon-blue: #00e1ff;
+  --neon-blue-bright: #00f7ff;
+  --neon-blue-dim: rgba(0, 225, 255, 0.5);
+  --neon-blue-faint: rgba(0, 225, 255, 0.2);
+  --text-white: #ffffff;
+  --text-gray: rgba(255, 255, 255, 0.7);
+  --card-border-radius: 8px;
 }
 
 /* Custom Scrollbar Styling */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
@@ -34,12 +42,14 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--golden-primary);
+  background: var(--neon-blue-dim);
   border-radius: 4px;
+  border: 2px solid var(--dark-surface);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--golden-secondary);
+  background: var(--neon-blue);
+  box-shadow: 0 0 8px var(--neon-blue);
 }
 
 body {
@@ -50,7 +60,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--dark-bg);
-  color: var(--text-primary);
+  color: var(--text-white);
   line-height: 1.6;
 }
 
@@ -66,7 +76,7 @@ button {
 
 a {
   text-decoration: none;
-  color: var(--golden-primary);
+  color: var(--neon-blue);
   transition: all var(--transition-speed) ease;
 }
 
@@ -75,11 +85,43 @@ input, textarea, button, select {
   transition: all var(--transition-speed) ease;
 }
 
+/* Improved placeholder styling with increased padding */
+::placeholder {
+  color: var(--text-gray);
+  opacity: 0.6;
+  padding-left: 12px; /* Increased from 8px to 12px */
+}
+
+:-ms-input-placeholder {
+  color: var(--text-gray);
+  opacity: 0.6;
+  padding-left: 12px; /* Increased from 8px to 12px */
+}
+
+::-ms-input-placeholder {
+  color: var(--text-gray);
+  opacity: 0.6;
+  padding-left: 12px; /* Increased from 8px to 12px */
+}
+
+/* Form inputs with improved padding */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+textarea,
+select {
+  padding: 0.85rem 1.2rem; /* Increased from 0.75rem 1rem */
+}
+
 .loading-container {
   display: flex;
   justify-content: center;
   align-items: center;
   height: calc(100vh - 70px);
   font-size: 1.5rem;
-  color: var(--golden-primary);
+  color: var(--neon-blue);
 }

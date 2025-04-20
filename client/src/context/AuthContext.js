@@ -3,28 +3,36 @@ import axios from 'axios';
 
 export const AuthContext = createContext();
 
+const api = axios.create({
+  baseURL: 'http://localhost:5000/api',
+  timeout: 10000,
+});
+
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [employees, setEmployees] = useState([]);
+  const [requestLoading, setRequestLoading] = useState(false);
 
   useEffect(() => {
-    // Check if user is already logged in (from localStorage)
     const loadUser = async () => {
       const token = localStorage.getItem('token');
       
       if (token) {
         try {
-          // Set default headers for all axios requests
-          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           
-          // Get current user data
-          const res = await axios.get('http://localhost:5000/api/auth/me');
+          const res = await api.get('/auth/me');
           setCurrentUser(res.data);
+          
+          if (res.data.role === 'admin') {
+            loadEmployees();
+          }
         } catch (err) {
           console.error('Failed to load user', err);
           localStorage.removeItem('token');
-          delete axios.defaults.headers.common['Authorization'];
+          delete api.defaults.headers.common['Authorization'];
         }
       }
       
@@ -32,75 +40,154 @@ export const AuthProvider = ({ children }) => {
     };
 
     loadUser();
+    
+    const interceptor = api.interceptors.response.use(
+      response => response,
+      error => {
+        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+          logout();
+        }
+        return Promise.reject(error);
+      }
+    );
+    
+    return () => {
+      api.interceptors.response.eject(interceptor);
+    };
   }, []);
 
-  // Login user
+  const loadEmployees = async () => {
+    try {
+      const res = await api.get('/users/employees');
+      setEmployees(res.data);
+    } catch (err) {
+      console.error('Failed to load employees', err);
+    }
+  };
+
   const login = async (email, password) => {
     try {
+      setRequestLoading(true);
       setError(null);
-      const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
+      const res = await api.post('/auth/login', { email, password });
       
-      // Save token to localStorage
       localStorage.setItem('token', res.data.token);
       
-      // Set default headers for all axios requests
-      axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+      api.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
       
       setCurrentUser(res.data.user);
+      
+      if (res.data.user.role === 'admin') {
+        loadEmployees();
+      }
+      
       return true;
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
       return false;
+    } finally {
+      setRequestLoading(false);
     }
   };
 
-  // Register user
-  const register = async (name, email, password, contactInfo, residentialAddress, gender, age) => {
+  const createAdmin = async (name, email, password) => {
     try {
+      setRequestLoading(true);
       setError(null);
-      const res = await axios.post('http://localhost:5000/api/auth/register', {
+      const res = await api.post('/auth/create-admin', {
         name,
         email,
-        password,
-        contactInfo,
-        residentialAddress,
-        gender,
-        age
+        password
       });
       
-      // Save token to localStorage
       localStorage.setItem('token', res.data.token);
-      
-      // Set default headers for all axios requests
-      axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+      api.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
       
       setCurrentUser(res.data.user);
       return true;
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed');
+      setError(err.response?.data?.message || 'Admin creation failed. Please try again.');
       return false;
+    } finally {
+      setRequestLoading(false);
     }
   };
 
-  // Logout user
-  const logout = () => {
-    localStorage.removeItem('token');
-    delete axios.defaults.headers.common['Authorization'];
-    setCurrentUser(null);
+  const registerEmployee = async (employeeData) => {
+    try {
+      setRequestLoading(true);
+      setError(null);
+      const res = await api.post('/auth/register', employeeData);
+      
+      await loadEmployees();
+      
+      return { success: true, employee: res.data.user };
+    } catch (err) {
+      setError(err.response?.data?.message || 'Employee registration failed');
+      return { success: false, error: err.response?.data?.message || 'Failed to register employee' };
+    } finally {
+      setRequestLoading(false);
+    }
   };
 
-  // Update user profile
+  const deleteEmployee = async (employeeId) => {
+    try {
+      setRequestLoading(true);
+      setError(null);
+      await api.delete(`/users/employee/${employeeId}`);
+      
+      await loadEmployees();
+      
+      return true;
+    } catch (err) {
+      setError(err.response?.data?.message || 'Delete employee failed');
+      return false;
+    } finally {
+      setRequestLoading(false);
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    delete api.defaults.headers.common['Authorization'];
+    setCurrentUser(null);
+    setEmployees([]);
+  };
+
   const updateProfile = async (userData) => {
     try {
+      setRequestLoading(true);
       setError(null);
-      const res = await axios.put('http://localhost:5000/api/users/profile', userData);
+      const res = await api.put('/users/profile', userData);
       setCurrentUser(res.data);
       return true;
     } catch (err) {
       setError(err.response?.data?.message || 'Profile update failed');
       return false;
+    } finally {
+      setRequestLoading(false);
     }
   };
+
+  const changePassword = async (currentPassword, newPassword) => {
+    try {
+      setRequestLoading(true);
+      setError(null);
+      const res = await api.post('/auth/change-password', {
+        currentPassword,
+        newPassword
+      });
+      
+      return { success: true, message: res.data.message };
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to change password');
+      return { success: false, error: err.response?.data?.message || 'Failed to change password' };
+    } finally {
+      setRequestLoading(false);
+    }
+  };
+
+  const clearError = () => setError(null);
 
   return (
     <AuthContext.Provider
@@ -108,10 +195,16 @@ export const AuthProvider = ({ children }) => {
         currentUser,
         loading,
         error,
+        clearError,
+        requestLoading,
+        employees,
         login,
-        register,
+        createAdmin,
+        registerEmployee,
+        deleteEmployee,
         logout,
-        updateProfile
+        updateProfile,
+        changePassword
       }}
     >
       {children}

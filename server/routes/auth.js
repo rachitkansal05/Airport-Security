@@ -2,44 +2,93 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const auth = require('../middleware/auth');
+const { auth, admin } = require('../middleware/auth');
 const User = require('../models/User');
+const { sendEmployeeCredentials, sendPasswordChangeConfirmation } = require('../utils/email');
 
-
-router.post('/register', async (req, res) => {
-  const { name, email, password, contactInfo, residentialAddress, gender, age } = req.body;
+router.post('/register', auth, admin, async (req, res) => {
+  const { name, email, password, contactInfo, residentialAddress, gender, age, role } = req.body;
 
   try {
-    // Check if user already exists
     let user = await User.findOne({ email });
     if (user) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Create new user
+    const originalPassword = password;
+
     user = new User({
       name,
       email,
       password,
+      role: role === 'admin' ? 'admin' : 'employee',
       contactInfo,
       residentialAddress,
       gender,
       age
     });
 
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
 
-    // Save user to database
+    await user.save();
+    
+    await sendEmployeeCredentials({
+      name,
+      email,
+      password: originalPassword,
+      role: user.role
+    });
+    
+    res.json({
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        profilePicture: user.profilePicture,
+        contactInfo: user.contactInfo,
+        residentialAddress: user.residentialAddress,
+        gender: user.gender,
+        age: user.age
+      }
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
+router.post('/create-admin', async (req, res) => {
+  const { name, email, password } = req.body;
+
+  try {
+    const adminExists = await User.findOne({ role: 'admin' });
+    if (adminExists) {
+      return res.status(400).json({ message: 'Admin already exists. Only one admin allowed.' });
+    }
+
+    let user = await User.findOne({ email });
+    if (user) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+
+    user = new User({
+      name,
+      email,
+      password,
+      role: 'admin'
+    });
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+
     await user.save();
 
-    // Create JWT payload
     const payload = {
       userId: user.id
     };
 
-    // Sign JWT token
     jwt.sign(
       payload,
       process.env.JWT_SECRET || 'defaultsecret',
@@ -52,11 +101,7 @@ router.post('/register', async (req, res) => {
             id: user.id,
             name: user.name,
             email: user.email,
-            profilePicture: user.profilePicture,
-            contactInfo: user.contactInfo,
-            residentialAddress: user.residentialAddress,
-            gender: user.gender,
-            age: user.age
+            role: user.role
           }
         });
       }
@@ -71,18 +116,15 @@ router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
-
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
-
 
     const payload = {
       userId: user.id
@@ -100,6 +142,7 @@ router.post('/login', async (req, res) => {
             id: user.id,
             name: user.name,
             email: user.email,
+            role: user.role,
             profilePicture: user.profilePicture,
             contactInfo: user.contactInfo,
             residentialAddress: user.residentialAddress,
@@ -118,6 +161,47 @@ router.post('/login', async (req, res) => {
 router.get('/me', auth, async (req, res) => {
   try {
     res.json(req.user);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
+router.post('/change-password', auth, async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ message: 'Please provide both current and new password' });
+  }
+
+  if (newPassword.length < 6) {
+    return res.status(400).json({ message: 'New password must be at least 6 characters long' });
+  }
+
+  try {
+    const user = await User.findById(req.user.id);
+    
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    const isSamePassword = await bcrypt.compare(newPassword, user.password);
+    if (isSamePassword) {
+      return res.status(400).json({ message: 'New password must be different from current password' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+
+    await user.save();
+
+    await sendPasswordChangeConfirmation({
+      name: user.name,
+      email: user.email
+    });
+
+    res.json({ message: 'Password changed successfully' });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
