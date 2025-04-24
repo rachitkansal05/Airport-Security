@@ -126,8 +126,16 @@
   color: rgba(0, 200, 255, 0.7);
 }
 
+.police-icon {
+  color: rgba(255, 200, 0, 0.7);
+}
+
 .role-radio:checked + .role-label .admin-icon {
   color: #00c8ff;
+}
+
+.role-radio:checked + .role-label .police-icon {
+  color: #ffc800;
 }
 
 .role-details {

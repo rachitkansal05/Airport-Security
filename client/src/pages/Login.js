@@ -75,22 +75,52 @@ const Login = () => {
       localStorage.removeItem('rememberedEmail');
     }
     
-    const success = await login(values.email, values.password);
+    // Clear any previous errors before attempting login
+    clearError();
     
-    if (!success) {
+    // Add debug info
+    console.log('Login submission:', {
+      email: values.email,
+      passwordLength: values.password.length,
+      apiUrl: `http://${window.location.hostname}:5000/api/auth/login`,
+      browserHostname: window.location.hostname,
+      userAgent: navigator.userAgent,
+      network: navigator.connection ? 
+        { effectiveType: navigator.connection.effectiveType } : 
+        'navigator.connection not available'
+    });
+    
+    try {
+      const success = await login(values.email, values.password);
+      
+      console.log('Login response received, success:', success);
+      
+      if (!success) {
+        setSubmitting(false);
+      } else {
+        resetForm();
+      }
+    } catch (error) {
+      console.error('Login error:', error);
       setSubmitting(false);
-    } else {
-      resetForm();
     }
   };
 
   const handleAdminSubmit = async (values, { setSubmitting, resetForm }) => {
-    const success = await createAdmin(values.name, values.email, values.password);
+    // Clear any previous errors before attempting admin creation
+    clearError();
     
-    if (!success) {
+    try {
+      const success = await createAdmin(values.name, values.email, values.password);
+      
+      if (!success) {
+        setSubmitting(false);
+      } else {
+        resetForm();
+      }
+    } catch (error) {
+      console.error('Admin creation error:', error);
       setSubmitting(false);
-    } else {
-      resetForm();
     }
   };
 
@@ -142,7 +172,7 @@ const Login = () => {
               initialValues={{ email: rememberedEmail, password: '' }}
               validationSchema={LoginSchema}
               validateOnBlur={true}
-              validateOnChange={false}
+              validateOnChange={true}
               onSubmit={handleLoginSubmit}
             >
               {({ isSubmitting, handleChange, handleBlur, values }) => (
@@ -230,7 +260,7 @@ const Login = () => {
               initialValues={{ name: '', email: '', password: '' }}
               validationSchema={AdminSchema}
               validateOnBlur={true}
-              validateOnChange={false}
+              validateOnChange={true}
               onSubmit={handleAdminSubmit}
             >
               {({ isSubmitting, handleChange, handleBlur, values }) => (

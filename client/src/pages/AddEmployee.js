@@ -13,7 +13,7 @@ const AddEmployeeSchema = Yup.object().shape({
     .email('Invalid email address')
     .required('Email is required'),
   contactInfo: Yup.string(),
-  address: Yup.string(),
+  residentialAddress: Yup.string(),
   gender: Yup.string(),
   age: Yup.number()
     .positive('Age must be a positive number')
@@ -49,14 +49,20 @@ const AddEmployee = () => {
       email: values.email, 
       password: values.password,
       contactInfo: values.contactInfo,
-      address: values.address,
+      residentialAddress: values.residentialAddress,
       gender: values.gender,
       age: values.age,
       role: values.role
     });
     
     if (result.success) {
-      setSuccessMessage(`${values.role === 'admin' ? 'Admin' : 'Employee'} ${values.name} has been successfully added.`);
+      setSuccessMessage(
+        `${values.role === 'admin' 
+          ? 'Admin' 
+          : values.role === 'police' 
+            ? 'Police Officer' 
+            : 'Employee'} ${values.name} has been successfully added.`
+      );
       setRegistrationSuccess(true);
       resetForm();
       
@@ -82,7 +88,7 @@ const AddEmployee = () => {
             name: '', 
             email: '', 
             contactInfo: '', 
-            address: '', 
+            residentialAddress: '', 
             gender: '', 
             age: '', 
             password: '', 
@@ -172,6 +178,30 @@ const AddEmployee = () => {
                         <div className="role-details">
                           <span className="role-title">Regular Employee</span>
                           <span className="role-description">Can access their profile and limited features</span>
+                        </div>
+                      </label>
+                    </div>
+                    
+                    <div className="role-option">
+                      <input 
+                        type="radio" 
+                        id="role-police" 
+                        name="role" 
+                        value="police"
+                        checked={values.role === 'police'}
+                        onChange={handleChange}
+                        className="role-radio"
+                      />
+                      <label htmlFor="role-police" className="role-label">
+                        <div className="role-icon police-icon">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 6h2v2h-2V7zm0 4h2v6h-2v-6z" 
+                              fill="currentColor"/>
+                          </svg>
+                        </div>
+                        <div className="role-details">
+                          <span className="role-title">Police Officer</span>
+                          <span className="role-description">Special security access with profile management</span>
                         </div>
                       </label>
                     </div>
@@ -271,14 +301,14 @@ const AddEmployee = () => {
                 </div>
                 
                 <div className="form-group">
-                  <label htmlFor="address" className="form-label">Address</label>
+                  <label htmlFor="residentialAddress" className="form-label">Address</label>
                   <textarea 
-                    name="address" 
-                    id="address" 
+                    name="residentialAddress" 
+                    id="residentialAddress" 
                     placeholder="Enter full address" 
                     onChange={handleChange}
                     onBlur={handleBlur}
-                    value={values.address}
+                    value={values.residentialAddress}
                     className="form-textarea"
                     rows="3"
                   ></textarea>
@@ -330,7 +360,10 @@ const AddEmployee = () => {
                   Back to Dashboard
                 </button>
                 <button type="submit" disabled={isSubmitting} className="primary-button">
-                  {isSubmitting ? 'Adding Staff Member...' : `Add ${values.role === 'admin' ? 'Admin' : 'Employee'}`}
+                  {isSubmitting ? 'Adding Staff Member...' : 
+                   values.role === 'admin' ? 'Add Admin' : 
+                   values.role === 'police' ? 'Add Police Officer' : 
+                   'Add Employee'}
                 </button>
               </div>
             </Form>

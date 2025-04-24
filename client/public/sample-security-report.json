@@ -1,0 +1,141 @@
+{
+  "securityCheckReport": {
+    "reportId": "SCR-20250424-001",
+    "dateGenerated": "2025-04-24T10:30:15Z",
+    "reportingEmployee": {
+      "id": "EMP-1234",
+      "name": "John Smith",
+      "position": "Security Supervisor"
+    },
+    "scanSummary": {
+      "totalPassengers": 156,
+      "totalBaggageItems": 342,
+      "scanTime": "09:15:00 - 10:15:00"
+    },
+    "items": [
+      {
+        "id": "ITEM-001",
+        "type": "Baggage",
+        "passengerName": "Alice Johnson",
+        "passengerId": "PAX-A23456",
+        "flightNumber": "AS-2345",
+        "destination": "New York",
+        "scanResult": "Pass",
+        "notes": "Standard check completed"
+      },
+      {
+        "id": "ITEM-002",
+        "type": "Baggage",
+        "passengerName": "Robert Chen",
+        "passengerId": "PAX-B12345",
+        "flightNumber": "AS-2345",
+        "destination": "New York",
+        "scanResult": "Flag",
+        "flagReason": "Unidentified metal object",
+        "action": "Secondary screening completed",
+        "resolution": "Hand tool identified and cleared"
+      },
+      {
+        "id": "ITEM-003",
+        "type": "Carry-on",
+        "passengerName": "Maria Garcia",
+        "passengerId": "PAX-C56789",
+        "flightNumber": "AS-1122",
+        "destination": "Chicago",
+        "scanResult": "Pass",
+        "notes": "Standard check completed"
+      },
+      {
+        "id": "ITEM-004",
+        "type": "Carry-on",
+        "passengerName": "David Wilson",
+        "passengerId": "PAX-D98765",
+        "flightNumber": "AS-1122",
+        "destination": "Chicago",
+        "scanResult": "Flag",
+        "flagReason": "Liquid container exceeding 100ml",
+        "action": "Item removed",
+        "resolution": "Passenger allowed to proceed after item confiscation"
+      },
+      {
+        "id": "ITEM-005",
+        "type": "Baggage",
+        "passengerName": "Sarah Thompson",
+        "passengerId": "PAX-E24680",
+        "flightNumber": "AS-5566",
+        "destination": "Los Angeles",
+        "scanResult": "Pass",
+        "notes": "Standard check completed"
+      },
+      {
+        "id": "ITEM-006",
+        "type": "Personal Item",
+        "passengerName": "James Lee",
+        "passengerId": "PAX-F13579",
+        "flightNumber": "AS-7788",
+        "destination": "Denver",
+        "scanResult": "Flag",
+        "flagReason": "Potential prohibited item",
+        "action": "Secondary inspection",
+        "resolution": "False alarm - item was a camera accessory"
+      },
+      {
+        "id": "ITEM-007",
+        "type": "Baggage",
+        "passengerName": "Emma Davis",
+        "passengerId": "PAX-G11223",
+        "flightNumber": "AS-9900",
+        "destination": "Seattle",
+        "scanResult": "Pass",
+        "notes": "Standard check completed"
+      },
+      {
+        "id": "ITEM-008",
+        "type": "Carry-on",
+        "passengerName": "Michael Brown",
+        "passengerId": "PAX-H33445",
+        "flightNumber": "AS-3344",
+        "destination": "Boston",
+        "scanResult": "Flag",
+        "flagReason": "Sharp object detected",
+        "action": "Item identified and removed",
+        "resolution": "Passenger allowed to proceed after item confiscation"
+      },
+      {
+        "id": "ITEM-009",
+        "type": "Personal Item",
+        "passengerName": "Sophia Martinez",
+        "passengerId": "PAX-I55667",
+        "flightNumber": "AS-6677",
+        "destination": "Miami",
+        "scanResult": "Pass",
+        "notes": "Standard check completed"
+      },
+      {
+        "id": "ITEM-010",
+        "type": "Baggage",
+        "passengerName": "William Taylor",
+        "passengerId": "PAX-J77889",
+        "flightNumber": "AS-8899",
+        "destination": "Atlanta",
+        "scanResult": "Pass",
+        "notes": "Standard check completed"
+      }
+    ],
+    "flaggedItemsCount": 4,
+    "securityIncidents": [
+      {
+        "id": "INC-001",
+        "time": "09:45:23",
+        "description": "Verbal altercation with passenger during secondary screening",
+        "resolution": "Situation de-escalated by supervisor intervention",
+        "severity": "Low"
+      }
+    ],
+    "signature": {
+      "employeeId": "EMP-1234",
+      "timestamp": "2025-04-24T10:32:45Z",
+      "verificationCode": "SC-VER-20250424-1234"
+    }
+  }
+}

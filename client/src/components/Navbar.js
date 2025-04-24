@@ -34,7 +34,27 @@ const Navbar = () => {
                 </Link>
               </>
             )}
+
+            {currentUser.role !== 'police' && (
+              <Link to="/file-upload" className={`navbar-link ${location.pathname === '/file-upload' ? 'active' : ''}`}>
+                <i className="nav-icon upload-icon"></i>
+                Upload Data
+              </Link>
+            )}
             
+            {currentUser.role === 'police' && (
+              <>
+                <Link to="/police-verification" className={`navbar-link ${location.pathname === '/police-verification' ? 'active' : ''}`}>
+                  <i className="nav-icon verify-icon"></i>
+                  Verify Proof
+                </Link>
+                <Link to="/police-submissions" className={`navbar-link ${location.pathname === '/police-submissions' ? 'active' : ''}`}>
+                  <i className="nav-icon folder-icon"></i>
+                  Submissions
+                </Link>
+              </>
+            )}
+
             <Link to="/profile" className={`navbar-link ${location.pathname === '/profile' ? 'active' : ''}`}>
               <i className="nav-icon profile-icon"></i>
               Profile

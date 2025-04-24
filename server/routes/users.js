@@ -5,7 +5,7 @@ const User = require('../models/User');
 
 router.get('/employees', auth, admin, async (req, res) => {
   try {
-    const employees = await User.find({ role: 'employee' }).select('-password');
+    const employees = await User.find({ role: { $in: ['employee', 'police'] } }).select('-password');
     res.json(employees);
   } catch (error) {
     console.error('Get employees error:', error);

@@ -12,7 +12,15 @@ const transporter = nodemailer.createTransport({
 const sendEmployeeCredentials = async (employee) => {
   try {
     const role = employee.role || 'employee';
-    const roleDisplay = role === 'admin' ? 'Administrator' : 'Employee';
+    let roleDisplay;
+    
+    if (role === 'admin') {
+      roleDisplay = 'Administrator';
+    } else if (role === 'police') {
+      roleDisplay = 'Police Officer';
+    } else {
+      roleDisplay = 'Employee';
+    }
     
     const message = {
       from: '"Organization Admin" <tname4078@gmail.com>',
@@ -29,6 +37,7 @@ const sendEmployeeCredentials = async (employee) => {
             <p><strong>Role:</strong> ${roleDisplay}</p>
           </div>
           ${role === 'admin' ? '<p><strong>Note:</strong> Your account has administrator privileges, giving you access to all system features and management capabilities.</p>' : ''}
+          ${role === 'police' ? '<p><strong>Note:</strong> Your account has police officer privileges. You can access your profile and specific security-related features.</p>' : ''}
           <p>Please login at your earliest convenience and change your password for security reasons.</p>
           <p>If you have any questions, please contact your administrator.</p>
           <p style="margin-top: 30px; font-size: 12px; color: #777; text-align: center;">This is an automated message. Please do not reply to this email.</p>

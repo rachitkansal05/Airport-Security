@@ -50,7 +50,7 @@ const Dashboard = () => {
         employee.contactInfo, 
         employee.gender, 
         employee.age?.toString(),
-        employee.address
+        employee.residentialAddress
       ];
       
       return searchFields.some(field => 
@@ -128,12 +128,12 @@ const Dashboard = () => {
       <div className="dashboard-header">
         <div>
           <h1>Admin Dashboard</h1>
-          <p>Manage organization employees</p>
+          <p>Manage organization staff</p>
         </div>
         <div className="dashboard-metrics">
           <div className="metric">
             <span className="metric-value">{employees.length}</span>
-            <span className="metric-label">Total Employees</span>
+            <span className="metric-label">Total Staff</span>
           </div>
         </div>
       </div>
@@ -148,7 +148,7 @@ const Dashboard = () => {
         <div className="search-container">
           <input
             type="text"
-            placeholder="Search employees..."
+            placeholder="Search staff..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
@@ -166,19 +166,19 @@ const Dashboard = () => {
             className="action-button add-button"
             onClick={handleAddEmployeeClick}
           >
-            Add New Employee
+            Add New Staff Member
           </button>
         </div>
       </div>
 
       <div className="employees-list">
-        <h2>Employees</h2>
+        <h2>Staff Members</h2>
         
         {filteredEmployees.length === 0 ? (
           <p className="no-employees">
             {searchTerm 
-              ? 'No employees found matching your search criteria.' 
-              : 'No employees found. Add some employees to get started.'}
+              ? 'No staff members found matching your search criteria.' 
+              : 'No staff members found. Add employees or police officers to get started.'}
           </p>
         ) : view === 'table' ? (
           <div className="employees-table-container">
@@ -191,6 +191,9 @@ const Dashboard = () => {
                   <th onClick={() => handleSort('email')}>
                     Email{getSortIndicator('email')}
                   </th>
+                  <th onClick={() => handleSort('role')}>
+                    Role{getSortIndicator('role')}
+                  </th>
                   <th onClick={() => handleSort('contactInfo')}>
                     Contact Info{getSortIndicator('contactInfo')}
                   </th>
@@ -200,8 +203,8 @@ const Dashboard = () => {
                   <th onClick={() => handleSort('age')}>
                     Age{getSortIndicator('age')}
                   </th>
-                  <th onClick={() => handleSort('address')}>
-                    Address{getSortIndicator('address')}
+                  <th onClick={() => handleSort('residentialAddress')}>
+                    Address{getSortIndicator('residentialAddress')}
                   </th>
                   <th>Actions</th>
                 </tr>
@@ -211,10 +214,15 @@ const Dashboard = () => {
                   <tr key={employee._id}>
                     <td>{employee.name}</td>
                     <td>{employee.email}</td>
+                    <td>
+                      <span className={`role-badge ${employee.role}`}>
+                        {employee.role === 'police' ? 'Police Officer' : employee.role}
+                      </span>
+                    </td>
                     <td>{employee.contactInfo || 'N/A'}</td>
                     <td>{employee.gender || 'N/A'}</td>
                     <td>{employee.age || 'N/A'}</td>
-                    <td>{employee.address || 'N/A'}</td>
+                    <td>{employee.residentialAddress || 'N/A'}</td>
                     <td>
                       <button 
                         className="action-button delete-button"
@@ -238,10 +246,15 @@ const Dashboard = () => {
                 <div className="employee-details">
                   <h3>{employee.name}</h3>
                   <p className="employee-email">{employee.email}</p>
+                  <p className="employee-role">
+                    <span className={`role-badge ${employee.role}`}>
+                      {employee.role === 'police' ? 'Police Officer' : employee.role}
+                    </span>
+                  </p>
                   <p><strong>Contact:</strong> {employee.contactInfo || 'N/A'}</p>
                   <p><strong>Gender:</strong> {employee.gender || 'N/A'}</p>
                   <p><strong>Age:</strong> {employee.age || 'N/A'}</p>
-                  <p><strong>Address:</strong> {employee.address || 'N/A'}</p>
+                  <p><strong>Address:</strong> {employee.residentialAddress || 'N/A'}</p>
                   <div className="employee-actions">
                     <button 
                       className="action-button delete-button"

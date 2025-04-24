@@ -31,7 +31,7 @@ const RegisterSchema = Yup.object().shape({
 });
 
 const Register = () => {
-  const { register, error, clearError, requestLoading, currentUser } = useContext(AuthContext);
+  const { registerEmployee, error, clearError, requestLoading, currentUser } = useContext(AuthContext);
   const navigate = useNavigate();
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
@@ -48,28 +48,36 @@ const Register = () => {
   }, [currentUser, navigate, clearError]);
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
-    const result = await register({
-      name: values.name, 
-      email: values.email, 
-      password: values.password,
-      contactInfo: values.contactInfo,
-      residentialAddress: values.residentialAddress,
-      gender: values.gender,
-      age: values.age
-    });
+    // Clear any previous errors before attempting registration
+    clearError();
     
-    if (result.success) {
-      setRegistrationSuccess(true);
-      resetForm();
-    } else {
+    try {
+      const result = await registerEmployee({
+        name: values.name, 
+        email: values.email, 
+        password: values.password,
+        contactInfo: values.contactInfo,
+        residentialAddress: values.residentialAddress,
+        gender: values.gender,
+        age: values.age
+      });
+      
+      if (result.success) {
+        setRegistrationSuccess(true);
+        resetForm();
+      } else {
+        setRegistrationSuccess(false);
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
       setRegistrationSuccess(false);
+    } finally {
+      setSubmitting(false);
+      
+      setTimeout(() => {
+        setRegistrationSuccess(false);
+      }, 5000);
     }
-    
-    setSubmitting(false);
-    
-    setTimeout(() => {
-      setRegistrationSuccess(false);
-    }, 5000);
   };
 
   return (
@@ -97,6 +105,12 @@ const Register = () => {
               {registrationSuccess && (
                 <div className="alert success">
                   Employee {values.name} has been successfully registered.
+                </div>
+              )}
+              
+              {error && (
+                <div className="alert error">
+                  {error}
                 </div>
               )}
               

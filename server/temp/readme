@@ -1,0 +1,28 @@
+
+1)python preprocess.py 101_1.tif 101_2.tif
+then u get pkl files 
+2)python app2.py pkl1 pkl2
+
+3)node mia2_js/generate_witness.js mia2_js/mia2.wasm input.json witness.wtns
+this happens at airport terminal
+
+4)snarkjs wtns export json witness.wtns witness.json
+to view witness file at airport terminal the second place has 0 or 1 match 
+5)airport trminal runs:
+set up phase i have alreay done it uses that set up phase for below steps 
+snarkjs wtns calculate mia2.wasm circom_input.json witness.wtns
+
+snarkjs groth16 prove circuit_0001.zkey witness.wtns proof.json public.json
+
+ Sends proof.json and public.json to verifier.
+
+government runs:
+bash
+
+snarkjs groth16 verify verification_key.json public.json proof.json
+
+→Sees [INFO] snarkJS: OK! if valid. this means output is valid 
+
+snarkjs wtns export json witness.wtns witness.json
+to view witness file at airport terminal the second place has 0 or 1 match   do this at government as well this has output u expect
+

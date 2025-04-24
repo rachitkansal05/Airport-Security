@@ -21,7 +21,7 @@ router.post('/register', auth, admin, async (req, res) => {
       name,
       email,
       password,
-      role: role === 'admin' ? 'admin' : 'employee',
+      role: role === 'admin' ? 'admin' : (role === 'police' ? 'police' : 'employee'),
       contactInfo,
       residentialAddress,
       gender,
@@ -62,6 +62,11 @@ router.post('/register', auth, admin, async (req, res) => {
 router.post('/create-admin', async (req, res) => {
   const { name, email, password } = req.body;
 
+  // Add validation for required fields
+  if (!name || !email || !password) {
+    return res.status(400).json({ message: 'Name, email, and password are required' });
+  }
+
   try {
     const adminExists = await User.findOne({ role: 'admin' });
     if (adminExists) {
@@ -70,7 +75,7 @@ router.post('/create-admin', async (req, res) => {
 
     let user = await User.findOne({ email });
     if (user) {
-      return res.status(400).json({ message: 'User already exists' });
+      return res.status(400).json({ message: 'User with this email already exists' });
     }
 
     user = new User({
@@ -107,24 +112,31 @@ router.post('/create-admin', async (req, res) => {
       }
     );
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
+    console.error('Admin creation server error:', err.message);
+    res.status(500).json({ message: 'Server error: ' + err.message });
   }
 });
 
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
+  
+  console.log(`Login attempt for email: ${email} from IP: ${req.ip || req.connection.remoteAddress}`);
+  console.log('Request headers:', JSON.stringify(req.headers));
 
   try {
     const user = await User.findOne({ email });
     if (!user) {
+      console.log(`Login failed: User not found for email ${email}`);
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      console.log(`Login failed: Invalid password for email ${email}`);
       return res.status(400).json({ message: 'Invalid credentials' });
     }
+
+    console.log(`Login successful for user: ${user.name}, role: ${user.role}`);
 
     const payload = {
       userId: user.id
@@ -135,7 +147,11 @@ router.post('/login', async (req, res) => {
       process.env.JWT_SECRET || 'defaultsecret',
       { expiresIn: '7d' },
       (err, token) => {
-        if (err) throw err;
+        if (err) {
+          console.error('JWT signing error:', err);
+          throw err;
+        }
+        console.log('Token generated successfully');
         res.json({
           token,
           user: {
@@ -153,7 +169,7 @@ router.post('/login', async (req, res) => {
       }
     );
   } catch (err) {
-    console.error(err.message);
+    console.error('Login server error:', err.message);
     res.status(500).send('Server error');
   }
 });

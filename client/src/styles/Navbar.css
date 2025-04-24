@@ -166,6 +166,33 @@
   left: 4px;
 }
 
+.upload-icon {
+  border-radius: 3px;
+  border: 1px solid currentColor;
+}
+
+.upload-icon::before {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 6px;
+  border-top: 1px solid currentColor;
+  top: 3px;
+  left: 4px;
+}
+
+.upload-icon::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-bottom: 6px solid currentColor;
+  top: -2px;
+  left: 4px;
+}
+
 .login-icon::before {
   content: '';
   position: absolute;
