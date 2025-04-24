@@ -656,15 +656,6 @@ const Profile = () => {
           <i className="tab-icon password-icon"></i>
           Change Password
         </button>
-        {currentUser.role === 'employee' && (
-          <button 
-            className={`tab-button ${activeTab === 'biometrics' ? 'active' : ''}`}
-            onClick={() => setActiveTab('biometrics')}
-          >
-            <i className="tab-icon fingerprint-icon"></i>
-            Biometric Processing
-          </button>
-        )}
         <button 
           className={`tab-button ${activeTab === 'security' ? 'active' : ''}`}
           onClick={() => setActiveTab('security')}

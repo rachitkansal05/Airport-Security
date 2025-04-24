@@ -8,6 +8,7 @@ const multer = require('multer');
 const { promisify } = require('util');
 const ProofSubmission = require('../models/ProofSubmission');
 const User = require('../models/User');
+const jwt = require('jsonwebtoken');
 
 // Custom middleware to restrict police users from accessing biometric routes
 const restrictPolice = (req, res, next) => {
@@ -710,28 +711,52 @@ router.get('/proof-submissions/:id', auth, onlyPolice, async (req, res) => {
 });
 
 // Download proof file from a submission (police only)
-router.get('/proof-submissions/:id/proof', auth, onlyPolice, async (req, res) => {
+router.get('/proof-submissions/:id/proof', async (req, res) => {
   try {
-    const submission = await ProofSubmission.findById(req.params.id);
+    // Handle token from query parameter for direct downloads
+    const token = req.query.token || req.header('x-auth-token') || (req.header('Authorization') ? req.header('Authorization').split(' ')[1] : null);
     
-    if (!submission) {
-      return res.status(404).json({ message: 'Proof submission not found' });
+    if (!token) {
+      return res.status(401).json({ message: 'No token, authorization denied' });
     }
     
-    // Create a temporary file to send
-    const tempFilePath = path.join(tempDir, `proof-${submission._id}.json`);
-    fs.writeFileSync(tempFilePath, submission.proofData);
-    
-    res.download(tempFilePath, `proof-${submission._id}.json`, (err) => {
-      // Delete the temp file after download
-      if (fs.existsSync(tempFilePath)) {
-        fs.unlinkSync(tempFilePath);
+    // Verify the token
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'defaultsecret');
+      const user = await User.findById(decoded.userId).select('-password');
+      
+      if (!user) {
+        return res.status(401).json({ message: 'User not found' });
       }
       
-      if (err) {
-        console.error('Download error:', err);
+      if (user.role !== 'police') {
+        return res.status(403).json({ message: 'Access denied. Police role required.' });
       }
-    });
+      
+      // Continue with the existing functionality
+      const submission = await ProofSubmission.findById(req.params.id);
+      
+      if (!submission) {
+        return res.status(404).json({ message: 'Proof submission not found' });
+      }
+      
+      // Create a temporary file to send
+      const tempFilePath = path.join(tempDir, `proof-${submission._id}.json`);
+      fs.writeFileSync(tempFilePath, submission.proofData);
+      
+      res.download(tempFilePath, `proof-${submission._id}.json`, (err) => {
+        // Delete the temp file after download
+        if (fs.existsSync(tempFilePath)) {
+          fs.unlinkSync(tempFilePath);
+        }
+        
+        if (err) {
+          console.error('Download error:', err);
+        }
+      });
+    } catch (jwtError) {
+      return res.status(401).json({ message: 'Token is not valid' });
+    }
   } catch (error) {
     console.error('Error downloading proof file:', error);
     res.status(500).json({ message: 'Failed to download proof file', error: error.message });
@@ -739,28 +764,52 @@ router.get('/proof-submissions/:id/proof', auth, onlyPolice, async (req, res) =>
 });
 
 // Download public file from a submission (police only)
-router.get('/proof-submissions/:id/public', auth, onlyPolice, async (req, res) => {
+router.get('/proof-submissions/:id/public', async (req, res) => {
   try {
-    const submission = await ProofSubmission.findById(req.params.id);
+    // Handle token from query parameter for direct downloads
+    const token = req.query.token || req.header('x-auth-token') || (req.header('Authorization') ? req.header('Authorization').split(' ')[1] : null);
     
-    if (!submission) {
-      return res.status(404).json({ message: 'Proof submission not found' });
+    if (!token) {
+      return res.status(401).json({ message: 'No token, authorization denied' });
     }
     
-    // Create a temporary file to send
-    const tempFilePath = path.join(tempDir, `public-${submission._id}.json`);
-    fs.writeFileSync(tempFilePath, submission.publicData);
-    
-    res.download(tempFilePath, `public-${submission._id}.json`, (err) => {
-      // Delete the temp file after download
-      if (fs.existsSync(tempFilePath)) {
-        fs.unlinkSync(tempFilePath);
+    // Verify the token
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'defaultsecret');
+      const user = await User.findById(decoded.userId).select('-password');
+      
+      if (!user) {
+        return res.status(401).json({ message: 'User not found' });
       }
       
-      if (err) {
-        console.error('Download error:', err);
+      if (user.role !== 'police') {
+        return res.status(403).json({ message: 'Access denied. Police role required.' });
       }
-    });
+      
+      // Continue with the existing functionality
+      const submission = await ProofSubmission.findById(req.params.id);
+      
+      if (!submission) {
+        return res.status(404).json({ message: 'Proof submission not found' });
+      }
+      
+      // Create a temporary file to send
+      const tempFilePath = path.join(tempDir, `public-${submission._id}.json`);
+      fs.writeFileSync(tempFilePath, submission.publicData);
+      
+      res.download(tempFilePath, `public-${submission._id}.json`, (err) => {
+        // Delete the temp file after download
+        if (fs.existsSync(tempFilePath)) {
+          fs.unlinkSync(tempFilePath);
+        }
+        
+        if (err) {
+          console.error('Download error:', err);
+        }
+      });
+    } catch (jwtError) {
+      return res.status(401).json({ message: 'Token is not valid' });
+    }
   } catch (error) {
     console.error('Error downloading public file:', error);
     res.status(500).json({ message: 'Failed to download public file', error: error.message });

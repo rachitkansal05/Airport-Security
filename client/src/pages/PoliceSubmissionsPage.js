@@ -140,7 +140,8 @@ const PoliceSubmissionsPage = () => {
   // Function to download proof file
   const downloadProofFile = async (submissionId) => {
     try {
-      window.open(`http://${SERVER_IP}:${SERVER_PORT}/api/biometric/proof-submissions/${submissionId}/proof`, '_blank');
+      const token = localStorage.getItem('token');
+      window.open(`http://${SERVER_IP}:${SERVER_PORT}/api/biometric/proof-submissions/${submissionId}/proof?token=${token}`, '_blank');
       setUpdateStatus({
         type: 'success',
         message: 'Downloading proof file...'
@@ -162,7 +163,8 @@ const PoliceSubmissionsPage = () => {
   // Function to download public file
   const downloadPublicFile = async (submissionId) => {
     try {
-      window.open(`http://${SERVER_IP}:${SERVER_PORT}/api/biometric/proof-submissions/${submissionId}/public`, '_blank');
+      const token = localStorage.getItem('token');
+      window.open(`http://${SERVER_IP}:${SERVER_PORT}/api/biometric/proof-submissions/${submissionId}/public?token=${token}`, '_blank');
       setUpdateStatus({
         type: 'success',
         message: 'Downloading public file...'
