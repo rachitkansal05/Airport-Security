@@ -562,7 +562,7 @@ router.post('/verify', auth, restrictPolice, async (req, res) => {
         });
       }
 
-      // Step 3: Export witness to JSON for inspection (optional)
+      // Step 3: Export witness to JSON for inspection (now mandatory for matching)
       try {
         console.log('Exporting witness to JSON...');
         const exportWitnessCmd = `snarkjs wtns export json ${witnessFile} ${witnessJsonFile}`;
@@ -574,10 +574,39 @@ router.post('/verify', auth, restrictPolice, async (req, res) => {
           console.log('Witness export stderr:', exportStderr);
         }
         console.log('Witness export stdout:', exportStdout);
+        
+        // Make sure the witness.json file exists
+        if (!fs.existsSync(witnessJsonFile)) {
+          console.error('witness.json was not created');
+          return res.status(500).json({ 
+            message: 'Failed to export witness to JSON',
+            error: 'Output file not created'
+          });
+        }
       } catch (exportError) {
-        console.error('Witness export error (continuing):', exportError);
-        // Continue anyway as this step is optional
+        console.error('Witness export error:', exportError);
+        return res.status(500).json({ 
+          message: 'Failed to export witness to JSON', 
+          error: exportError.message
+        });
       }
+      
+      // Read witness.json to get the match result
+      let witnessData;
+      try {
+        witnessData = JSON.parse(fs.readFileSync(witnessJsonFile, 'utf8'));
+        console.log('Successfully read witness.json');
+      } catch (readError) {
+        console.error('Error reading witness.json:', readError);
+        return res.status(500).json({ 
+          message: 'Failed to read witness.json', 
+          error: readError.message
+        });
+      }
+      
+      // Get the match result from witness.json[1]
+      const isMatchFromWitness = witnessData && witnessData[1] === '1';
+      console.log(`Match result from witness.json[1]: ${isMatchFromWitness}`);
 
       // Step 4: Generate proof
       console.log('Generating proof...');
@@ -606,12 +635,13 @@ router.post('/verify', auth, restrictPolice, async (req, res) => {
       const publicInputs = JSON.parse(fs.readFileSync(publicFile, 'utf8'));
 
       console.log('Verification completed successfully');
-      // Return the verification result
+      // Return the verification result using witness.json[1] for match checking
       return res.status(200).json({
         message: 'Verification completed',
-        matchFound: publicInputs[1] === '1',
+        matchFound: isMatchFromWitness, 
         proof,
-        publicInputs
+        publicInputs,
+        witnessData // Include witness data in the response
       });
     } catch (cmdError) {
       console.error('Command execution error:', cmdError);

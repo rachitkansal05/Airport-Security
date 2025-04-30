@@ -29,9 +29,6 @@ const FileUploadPage = () => {
   const [success, setSuccess] = useState('');
   const [logMessages, setLogMessages] = useState([]);
   
-  const [referencePklPath, setReferencePklPath] = useState('');
-  const [personPklPath, setPersonPklPath] = useState('');
-  
   const [verificationResult, setVerificationResult] = useState(null);
   const [proofGenerated, setProofGenerated] = useState(false);
 
@@ -93,7 +90,7 @@ const FileUploadPage = () => {
       formData.append('fingerprint', file);
 
       setIsProcessing(true);
-      addLogMessage(`Uploading ${isReference ? 'reference' : 'person\'s'} fingerprint for preprocessing...`);
+      addLogMessage(`Uploading ${isReference ? 'reference' : 'person\'s'} fingerprint...`);
 
       const response = await api.post('/biometric/upload-fingerprint', formData, {
         headers: {
@@ -101,18 +98,27 @@ const FileUploadPage = () => {
         },
       });
 
-      if (isReference) {
-        setReferencePklPath(response.data.pklFilePath);
-      } else {
-        setPersonPklPath(response.data.pklFilePath);
+      // Show actual command executed
+      const filePath = response.data.filePath;
+      const pklFilePath = response.data.pklFilePath;
+      addLogMessage(`$ python3 ../temp/preprocess.py ${filePath} ${pklFilePath}`);
+      
+      // Show command output
+      if (response.data.stdout) {
+        response.data.stdout.split('\n').forEach(line => {
+          if (line.trim()) addLogMessage(line.trim());
+        });
       }
-
-      addLogMessage(`${isReference ? 'Reference' : 'Person\'s'} fingerprint preprocessed successfully.`);
+      
+      addLogMessage(`✅ Features extracted and saved to ${pklFilePath}`);
       return response.data.pklFilePath;
     } catch (error) {
       console.error('Fingerprint upload error:', error);
       const errorMessage = error.response?.data?.message || error.message;
-      addLogMessage(`Error: ${errorMessage}`);
+      addLogMessage(`❌ Error: ${errorMessage}`);
+      if (error.response?.data?.command) {
+        addLogMessage(`Command: ${error.response.data.command}`);
+      }
       setError(`Failed to upload ${isReference ? 'reference' : 'person\'s'} fingerprint: ${errorMessage}`);
       return null;
     }
@@ -153,7 +159,22 @@ const FileUploadPage = () => {
       });
       
       const { circomInputFile } = circomInputResponse.data;
-      addLogMessage("Fingerprint comparison completed and circom input generated successfully.");
+      addLogMessage(`$ python3 ../temp/app2.py "${referencePklPath}" "${personPklPath}"`);
+      
+      // Display command output if available
+      if (circomInputResponse.data.stdout) {
+        circomInputResponse.data.stdout.split('\n').forEach(line => {
+          if (line.trim()) addLogMessage(line.trim());
+        });
+      }
+      
+      if (circomInputResponse.data.stderr) {
+        circomInputResponse.data.stderr.split('\n').forEach(line => {
+          if (line.trim()) addLogMessage(line.trim());
+        });
+      }
+      
+      addLogMessage(`✅ Circom input generated: ${circomInputFile}`);
       
       // Step 3: Generate witness
       addLogMessage("Step 3: Generating witness for ZK proof...");
@@ -162,7 +183,17 @@ const FileUploadPage = () => {
       });
       
       const { witnessFile } = witnessResponse.data;
-      addLogMessage("Witness generation completed successfully.");
+      const wasmFile = '../temp/mia2_js/mia2.wasm';
+      addLogMessage(`$ node ../temp/mia2_js/generate_witness.js ${wasmFile} ${circomInputFile} ${witnessFile}`);
+      
+      // Display command output if available
+      if (witnessResponse.data.stdout) {
+        witnessResponse.data.stdout.split('\n').forEach(line => {
+          if (line.trim()) addLogMessage(line.trim());
+        });
+      }
+      
+      addLogMessage(`✅ Witness generation completed: ${witnessFile}`);
       
       // Step 4: Generate proof
       addLogMessage("Step 4: Generating zero-knowledge proof...");
@@ -170,13 +201,27 @@ const FileUploadPage = () => {
         witnessFile
       });
       
+      // Display command execution
+      const zkeyFile = '../temp/circuit_0001.zkey';
+      const proofFile = '../temp/proof.json';
+      const publicFile = '../temp/public.json';
+      addLogMessage(`$ snarkjs groth16 prove ${zkeyFile} ${witnessFile} ${proofFile} ${publicFile}`);
+      
+      // Display command output if available
+      if (proofResponse.data.stdout) {
+        proofResponse.data.stdout.split('\n').forEach(line => {
+          if (line.trim()) addLogMessage(line.trim());
+        });
+      }
+      
       // Set the final result
       setVerificationResult(proofResponse.data);
       setProofGenerated(true);
       setCurrentStep(3);
       
-      addLogMessage(`Verification completed. Match result: ${proofResponse.data.matchFound ? 'MATCH FOUND' : 'NO MATCH'}`);
-      addLogMessage("Zero-knowledge proof generated successfully.");
+      
+      addLogMessage(`✅ Proof file generated: ${proofFile}`);
+      addLogMessage(`✅ Public file generated: ${publicFile}`);
       
       // Auto-download files if they are available
       if (proofResponse.data.fileContents) {
@@ -191,15 +236,21 @@ const FileUploadPage = () => {
         }
       }
       
-      setSuccess(`Fingerprint verification completed. ${proofResponse.data.matchFound ? 'Match found!' : 'No match found.'}`);
+      setSuccess(`Fingerprints processed. ${proofResponse.data.matchFound ? 'Match found!' : 'No match found.'}`);
     } catch (error) {
       console.error('Verification error:', error);
       const errorMessage = error.response?.data?.message || error.message;
       const errorDetails = error.response?.data?.error || '';
       
-      addLogMessage(`Error: ${errorMessage}`);
+      addLogMessage(`❌ Error: ${errorMessage}`);
       if (errorDetails) {
         addLogMessage(`Details: ${errorDetails}`);
+      }
+      if (error.response?.data?.command) {
+        addLogMessage(`Command: ${error.response.data.command}`);
+      }
+      if (error.response?.data?.step) {
+        addLogMessage(`Failed at step: ${error.response.data.step}`);
       }
       
       setError(`Verification process failed: ${errorMessage}`);
@@ -218,6 +269,8 @@ const FileUploadPage = () => {
     try {
       setIsProcessing(true);
       addLogMessage('Submitting proof files for secure archiving...');
+      addLogMessage(`Proof path: ${verificationResult.proofPath}`);
+      addLogMessage(`Public path: ${verificationResult.publicPath}`);
       
       // Submit the proof files to the server
       const response = await api.post('/biometric/submit-proof', {
@@ -225,7 +278,8 @@ const FileUploadPage = () => {
         publicPath: verificationResult.publicPath
       });
       
-      addLogMessage('Proof files submitted successfully!');
+      addLogMessage(`✅ Proof files submitted successfully with ID: ${response.data.submissionId}`);
+      addLogMessage(`✅ Timestamp: ${new Date(response.data.timestamp).toLocaleString()}`);
       setSuccess('Your proof has been archived successfully and can be accessed by authorized personnel.');
       
       // Reset the verification state after successful submission
@@ -235,7 +289,7 @@ const FileUploadPage = () => {
     } catch (error) {
       console.error('Proof submission error:', error);
       const errorMessage = error.response?.data?.message || error.message;
-      addLogMessage(`Error submitting proof: ${errorMessage}`);
+      addLogMessage(`❌ Error submitting proof: ${errorMessage}`);
       setError(`Failed to submit proof: ${errorMessage}`);
     } finally {
       setIsProcessing(false);
@@ -316,10 +370,13 @@ const FileUploadPage = () => {
   const renderVerificationResult = () => {
     if (!verificationResult) return null;
     
+    // Determine if there's a security alert (match with terrorist database)
+    const securityAlert = verificationResult.securityAlert || verificationResult.matchFound;
+    
     return (
-      <div className={`verification-result ${verificationResult.matchFound ? 'match' : 'no-match'}`}>
+      <div className={`verification-result ${securityAlert ? 'no-match' : 'match'}`}>
         <div className="result-icon">
-          {verificationResult.matchFound ? (
+          {!securityAlert ? (
             <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
               <polyline points="22 4 12 14.01 9 11.01"></polyline>
@@ -333,16 +390,16 @@ const FileUploadPage = () => {
           )}
         </div>
         <h3 className="result-title">
-          {verificationResult.matchFound ? 'Identity Verified' : 'Identity Not Verified'}
+          {securityAlert ? 'SECURITY ALERT!' : 'NO SECURITY THREAT'}
         </h3>
         <p className="result-description">
-          {verificationResult.matchFound 
-            ? 'The fingerprints match. Identity has been verified with a zero-knowledge proof.' 
-            : 'The fingerprints do not match. Identity verification failed.'}
+          {verificationResult.alertMessage || (securityAlert 
+            ? 'The fingerprints match a record in the terrorist database. Security personnel have been alerted.' 
+            : 'The fingerprints do not match any record in the terrorist database.')}
         </p>
         <div className="proof-info">
           <h4>Zero-Knowledge Proof Generated</h4>
-          <p>The proof has been generated and can be verified by authorized personnel without revealing the actual fingerprint data.</p>
+          <p>The proof has been generated and can be checked by authorized personnel without revealing the actual fingerprint data.</p>
           
           {/* Add download buttons for the files */}
           {verificationResult.fileContents && (
