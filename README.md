@@ -1,4 +1,4 @@
-# MERN Authentication App
+# MERN Authentication App.
 
 A complete MERN (MongoDB, Express, React, Node.js) authentication application with login, registration, and profile management features.
 
